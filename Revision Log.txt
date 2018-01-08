@@ -1,0 +1,36 @@
+Revision Log
+
+Revision 0
+	Off-road light control testing
+	Test:
+	Enabled code to allow Auxbus system to detect high beam input via CanBus and control relay for off-road lights.  No feedback from cab 		switch is used. Once high beam signal is detected system closes control relay #1 for off-road lights.  Light will turn on only if cab 		switch #1 is closed, completing the circuit.
+
+	Results:
+	Quick response of auxbus system in closing control relay #1.  Slight flicker on startup of jeep until shift register gets updated.  This 		only occurs if cab switch #1 is closed during startup and is very brief <0.5 sec.  Off-road lights function properly with high beams.  		System seems consistent and durable.  Tested as working between 12-3-17 to 12-11-17.
+
+Revision 1
+	Off-road light control testing part 2
+	Test:
+	Enable feedback from cab switch #1 and verify control relay #1 only changes state while cab switch #1 is closed regardless of high beam 		input. Replaced proto-board with revision 2 board, found issues with using pins 7 and 8 for shift register control.  Seems to be a 			conflict with the CANBUS Shield that uses the LEDs on those pins.  Not sure how to disable them in software.
+
+	Results:
+	As of 12-21-2017 the system is working with switch feedback.  Relay does not change state unless switch #1 is closed.  Will run this for 		awhile to verify reliabilty of new board and program.  
+
+Revision 2
+	Feedback LEDs and Interior LEDs
+	Added second shift register to Auxbus System to control additional outputs.  These outputs will be (5) LEDs associated with the (5) 			switches in the cab.  These will provide feedback to the operator as to what the system is doing.  Also (2) red LEDs have been added to 		the cab panel to provide interior lighting to the switches.  The Green feedback LEDs are 5V, the Red Interior LEDs are 12V.  The interior 		leds will be run off of PWM and using the CANBUS signal will be dimmed with the existing Jeep interior lights.
+
+	As of 12-26-2017 the 2nd shift register and feedback LEDs are functional.  The red interior LEDs are not working, the circuit needs to be 		checked.  Found the issue to be a stupid mistake.  Initial design had the MOSFET sinking current to the LEDs, As-built design has the 		MOSFET sourcing current to the LEDs.  Microcontroller is unable to provide sufficient voltage to switch MOSFET.  Need to re-wire circuit 		as designed.
+
+	Added startup sequence to feedback LEDs, LEDs cycle through 3 times on a 1/4s interval during start-up. 
+
+Revision 3
+	
+	Enabled locker subroutines to verify control is still working based on vehicle speed and cab switch input.  Routines are working fine, 			current setting is 5 and 40 MPH.  Locker can engage below 5MPH, once engaged it can stay active until the vehcile speed exceeds 40MPH then 	is drops out the relay.  Locker cannot be re-engaged until vehicle speed is below 5MPH again.
+
+Revision 4
+	Rewired red interior LEDs so Mosfet is sinking current.  I needed to run an additional wire to control the ground of the LEDs. While the 		circuit worked during bench testing the dimming function did not work in the Jeep.  Found the issue to an improper byte in the CANBUS read 	subroutine.  Changed byte from 2 to 0 and now dimming function is working however it is overly bright in comparision to dash lights.  I 		re-wrote the dimming routine to use pre-defined PWM values instead of reading directly from CANBUS value.  Values are very low due to 		brightness of LEDs.  Seems fine now and is not blinding.  Looking back 2 LEDs is overkill.  
+
+Revision 5
+	Add function to make feedback LEDs #4 and #5 (lockers) flash when the switch has been closed but the speed is not within limits.  	Provideds feedback to the driver that he has selected the locker but is going too fast for them to engage.
+	Also revised interiorLED to lowest brightness setting and is no longer dimming.  This is due to the red LEDs being too bright.  LEDs still 	function with interior lights.  As of 1-7-2018 system is working.
